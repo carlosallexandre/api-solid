@@ -1,0 +1,35 @@
+version: '3'
+
+networks:
+  api-tier:
+    driver: bridge
+
+services:
+  db:
+    image: postgres:16
+    ports:
+      - '5435:5432'
+    networks:
+      - api-tier
+    environment:
+      - POSTGRES_USER=my_user
+      - POSTGRES_PASSWORD=password123
+      - POSTGRES_DB='apisolid'
+      - PG_DATA=/var/lib/postgresql/data
+    volumes:
+      - ./data/pgdata:/var/lib/postgresql/data
+
+  api: 
+    depends_on:
+      - db
+    build: .
+    ports:
+      - '3333'
+    networks:
+      - api-tier
+    volumes:
+      - type: 'bind'
+        target: '/app'
+        source : './'
+    
+
