@@ -4,25 +4,19 @@ import { UsersRepository } from '../users-repository'
 export class InMemoryUsersRepository implements UsersRepository {
   public items: User[] = []
 
-  async findByEmail(email: string): Promise<{
-    id: string
-    name: string
-    email: string
-    password_hash: string
-    created_at: Date
-  } | null> {
+  async findById(userId: string): Promise<User | null> {
+    const user = this.items.find((user) => user.id === userId)
+
+    return user ?? null
+  }
+
+  async findByEmail(email: string): Promise<User | null> {
     const user = this.items.find((u) => u.email === email)
 
     return user ?? null
   }
 
-  async create(data: Prisma.UserCreateInput): Promise<{
-    id: string
-    name: string
-    email: string
-    password_hash: string
-    created_at: Date
-  }> {
+  async create(data: Prisma.UserCreateInput): Promise<User> {
     const user = {
       id: 'user-1',
       name: data.name,
