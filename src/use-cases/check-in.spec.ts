@@ -3,18 +3,20 @@ import { CheckInUseCase } from './check-in'
 import { InMemoryCheckInsRepository } from '@/repositories/in-memory/in-memory-check-ins-repository'
 import { InMemoryGymsRepository } from '@/repositories/in-memory/in-memory-gyms-repository'
 import { Decimal } from '@prisma/client/runtime/library'
+import { MaxDistanceExceededError } from './errors/max-distance-exceeded-error'
+import { MaxCheckInsSameDayError } from './errors/max-check-ins-same-day-error'
 
 describe('Check In Use Case', () => {
   let checkInsRepository: InMemoryCheckInsRepository
   let gymsRepository: InMemoryGymsRepository
   let sut: CheckInUseCase
 
-  beforeEach(() => {
+  beforeEach(async () => {
     checkInsRepository = new InMemoryCheckInsRepository()
     gymsRepository = new InMemoryGymsRepository()
     sut = new CheckInUseCase(checkInsRepository, gymsRepository)
 
-    gymsRepository.items.push({
+    await gymsRepository.create({
       id: 'gym-01',
       title: 'Javascript Gym',
       phone: '',
@@ -60,7 +62,7 @@ describe('Check In Use Case', () => {
         userLatitude: -17.8876087,
         userLongitude: -51.7361469,
       }),
-    ).rejects.toBeInstanceOf(Error)
+    ).rejects.toBeInstanceOf(MaxCheckInsSameDayError)
   })
 
   it('should be able to check in on different days', async () => {
@@ -86,7 +88,7 @@ describe('Check In Use Case', () => {
   })
 
   it('should not be able to check in too much distanct from the gym', async () => {
-    gymsRepository.items.push({
+    await gymsRepository.create({
       id: 'gym-02',
       title: 'Javascript Gym',
       phone: '',
@@ -102,6 +104,6 @@ describe('Check In Use Case', () => {
         userLatitude: -17.8876087,
         userLongitude: -51.7361469,
       }),
-    ).rejects.toBeInstanceOf(Error)
+    ).rejects.toBeInstanceOf(MaxDistanceExceededError)
   })
 })
